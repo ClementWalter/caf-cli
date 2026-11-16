@@ -397,6 +397,11 @@ def safe_name(text: str) -> str:
     return s[:150] or "document"
 
 
+def doc_name(label: str, address: str) -> str:
+    """'<label> <address>.pdf', the label shortened so the unique address always survives."""
+    return safe_name(f"{safe_name(label)[:120]} {address}".strip()) + ".pdf"
+
+
 def build_email(topic: str, body: str, nom_caf: str, motif: str | None = None,
                 prestation: str | None = None) -> dict:
     """The JSON the signed-in contact form posts to envoi_mail."""
@@ -587,6 +592,9 @@ class Caf:
             raise click.ClickException(f"403 — this account may not read {path}.")
         if status == 404:
             raise click.ClickException(f"404 — {path} not found on caf.fr.")
+        if status == 409 and "/attestation_sur_periode/" in path:
+            raise click.ClickException("409 — caf.fr has no attestation for this period yet; "
+                                       "end it at the last closed month (usually the previous one).")
         if not 200 <= status < 300:
             raise click.ClickException(f"{status} — {method} {path} failed: {(res.get('text') or '')[:200]}")
         return res
@@ -851,7 +859,7 @@ def courrier(ctx, ids, save, target_dir, as_json) -> None:
         folder = target_dir or default_out()
         for r in rows:
             if r["pdf"]:
-                name = safe_name(f"{(r['date'] or '')[:10]} {r['subject']} {r['pdf']}") + ".pdf"
+                name = doc_name(f"{(r['date'] or '')[:10]} {r['subject']}", r["pdf"])
                 r["path"] = write_pdf(folder / name, caf.pdf(API["pdf"] + pdf_key(r["pdf"])))
 
     def render(rs):
@@ -918,7 +926,7 @@ def download(ctx, ids, target_dir, output, as_json) -> None:
         address = by_message.get(i, i)
         if i.startswith("A") and i not in by_message:
             raise click.ClickException(f"{i} has no PDF (an email or a declaration); see `caf courrier {i}`.")
-        dest = output or (target_dir or default_out()) / (safe_name(f"{names.get(address, '')} {address}".strip()) + ".pdf")
+        dest = output or (target_dir or default_out()) / doc_name(names.get(address, ""), address)
         out.append({"id": i, "path": write_pdf(dest, caf.pdf(API["pdf"] + pdf_key(address)))})
     emit(out, as_json, lambda rs: [click.echo(f"{r['id']}\t{r['path']}") for r in rs])
 

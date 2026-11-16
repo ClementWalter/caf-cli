@@ -103,6 +103,21 @@ SERVED = {
 }
 
 
+class ConflictTab:
+    """A tab whose in-page fetch answers 409, as caf.fr does for an unclosed month."""
+
+    def href(self):
+        return cc.ORIGIN + "/"
+
+    def ev(self, js):
+        return json.dumps({"status": 409, "ct": "", "text": ""})
+
+
+def test_attestation_unclosed_month_names_the_fix():
+    with pytest.raises(click.ClickException, match="last closed month"):
+        cc.Caf(ConflictTab()).request(cc.API["attestation_period"] + "mns/20260101/20261130")
+
+
 class StubCaf:
     """Serves the fixtures by path, like `Caf` serves the live API; records POSTs and PDF paths."""
 
@@ -197,6 +212,10 @@ def test_pdf_key_strips_caf_prefix_and_suffix():
 def test_pdf_key_rejects(bad):
     with pytest.raises(click.BadParameter):
         cc.pdf_key(bad)
+
+
+def test_doc_name_keeps_address_when_label_is_long():
+    assert cc.doc_name("x" * 300, "751O0000000000000000000PDF").endswith(" 751O0000000000000000000PDF.pdf")
 
 
 def test_safe_name_replaces_path_separators():

@@ -118,4 +118,10 @@ caf login                              # terminal only: wait for a manual sign-i
   contactermacafappli bundle; if caf.fr changes it, `send` fails with the API's
   error. The website's "Camille" assistant (suggested answers before sending)
   is skipped.
+- A period attestation that includes the current, unclosed month answers 409
+  for `net-social` (paiements accepts it); end `--to` at the previous month.
+  Periods before the account's history (measured: before 2025 here) come back
+  as an attestation saying "aucun paiement", which is not proof of no payment.
+- `courriers` subjects for letters are always "Courrier de votre Caf"; the real
+  subject is only in the PDF (`pdftotext` its first lines to name the file).
 - `caf send --yes` is not idempotent: running it twice sends two emails.
