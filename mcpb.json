@@ -1,0 +1,24 @@
+{
+  "display_name": "Caf",
+  "description": "Read your caf.fr account from Claude: payments, entitlements, letters, attestations, and email your Caf.",
+  "long_description": "Reads your caf.fr Mon Compte (Caisse d'Allocations Familiales) as you: the payments the Caf sent and the benefits each one covers, your monthly entitlements with the reason when a benefit is not due, the letters and emails of « Mes courriers, courriels », your online procedures and your household profile. It saves letters, procedure receipts, attestations (paiement, quotient familial, montant net social) and the monthly relevé de compte as PDF on your Mac, and can email your Caf through « Contacter ma Caf » after showing you the message.\n\nSetup:\n1. Install Google Chrome if you do not have it.\n2. In Claude, ask: \"connect my Caf account\". A separate Chrome window opens on the Caf login page: sign in there with your numéro allocataire and password, or with FranceConnect.\n3. Then ask for example \"what did the Caf pay me this year?\", \"download my attestation de quotient familial\" or \"why don't I get the Paje allocation de base?\".\n\ncaf.fr blocks requests that do not come from a real browser, so the extension works through that dedicated Chrome window (its own profile, separate from your usual browser). Keep it open while you use the extension; it remembers your sign-in between sessions until caf.fr signs you out. If Claude says you are not signed in, ask it to connect again and sign in in the window. Your password is never seen or stored by the extension. Files are saved in the Download folder from this extension's settings (Downloads/caf by default).",
+  "platforms": ["darwin"],
+  "env": {
+    "CAF_DOWNLOAD_DIR": "${user_config.download_dir}"
+  },
+  "user_config": {
+    "download_dir": {
+      "type": "directory",
+      "title": "Download folder",
+      "description": "Where letters and attestations are saved.",
+      "default": "~/Downloads/caf",
+      "required": false
+    }
+  },
+  "site": {
+    "group": "home",
+    "rank": 45,
+    "needs": ["A caf.fr account (numéro allocataire or FranceConnect)", "Google Chrome installed"],
+    "risk": "unofficial-api"
+  }
+}

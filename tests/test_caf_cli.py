@@ -412,6 +412,35 @@ def test_send_needs_one_body(run):
     assert run("send", "--topic", "INFO_DOS").exit_code == 2
 
 
+class SignedOutTab:
+    """A tab stuck on the CAF login page; records navigations."""
+
+    def __init__(self):
+        self.visited = []
+
+    def href(self):
+        return "https://connect.caf.fr/connexionappli/dist/#/login"
+
+    def navigate(self, url):
+        self.visited.append(url)
+        return self.href()
+
+    def call(self, method, params=None):
+        return {}
+
+
+def test_connect_signed_out_reports_next_step(monkeypatch):
+    monkeypatch.setattr(cc, "open_tab", lambda url, launch: SignedOutTab())
+    assert json.loads(CliRunner().invoke(cc.cli, ["connect", "--json"]).output)["connected"] is False
+
+
+def test_connect_signed_out_opens_login_page(monkeypatch):
+    tab = SignedOutTab()
+    monkeypatch.setattr(cc, "open_tab", lambda url, launch: tab)
+    CliRunner().invoke(cc.cli, ["connect"])
+    assert tab.visited == [cc.HOME_URL]
+
+
 def test_no_chrome_names_the_fix():
     out = CliRunner().invoke(cc.cli, ["--cdp-url", "http://localhost:1", "--no-launch", "whoami"]).output
     assert "drop --no-launch or start Chrome" in out

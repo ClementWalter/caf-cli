@@ -23,10 +23,11 @@ wwwd.caf.fr tab, with a 5-minute JWT the portal mints at
 `/wps/s/GenerateTokenJwt/`.
 
 - Not signed in → every command fails with
-  ``Not signed in to caf.fr — run `caf login` …``. Ask the user to run
-  `! caf login`: it opens the window and waits (300 s) while they sign in
-  (numéro allocataire + mot de passe, or FranceConnect). The person types the
-  password; an agent never does.
+  ``Not signed in to caf.fr — run `caf connect` …``. Run `caf connect`: it
+  opens the window on the login page and returns at once with
+  `"connected": false`. Ask the user to sign in there (numéro allocataire +
+  mot de passe, or FranceConnect), then retry. The person types the password;
+  an agent never does. In a terminal, `caf login` does the same and waits.
 - `caf whoami` proves the binding (name, CAF code, dossier number).
 - Overrides: `CAF_CDP_URL`, `CAF_CHROME_PROFILE`, `CAF_DOWNLOAD_DIR`.
 
@@ -46,6 +47,7 @@ wwwd.caf.fr tab, with a 5-minute JWT the portal mints at
 
 ```bash
 # Read
+caf connect --json                     # open the window; signed in or not (returns at once)
 caf whoami --json                      # name, CAF code, dossier number, unread flag
 caf profil                             # household members, situation, address
 caf paiements --limit 5                # payments, latest first, with the benefits each covers

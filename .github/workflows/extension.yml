@@ -1,0 +1,18 @@
+# Claude Desktop extension: a v* tag publishes caf-cli.mcpb on its GitHub release.
+name: extension
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  extension:
+    permissions:
+      contents: write
+    uses: ClementWalter/mcp-bridge/.github/workflows/extension.yml@a16c706a861f519c7cea94d824bf6b0cf33cc207
+    with:
+      launcher: bin/caf
+      bridge-ref: a16c706a861f519c7cea94d824bf6b0cf33cc207

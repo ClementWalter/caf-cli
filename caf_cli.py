@@ -140,7 +140,8 @@ PRESTATIONS = {
 # courriersCourriels.typeMessage -> CLI kind.
 MESSAGE_KINDS = {"courriercaf": "courrier", "mailcaf": "courriel", "courrieralloc": "declaration"}
 
-NOT_LOGGED = "Not signed in to caf.fr — run `caf login` and sign in in the Chrome window it opens."
+NOT_LOGGED = ("Not signed in to caf.fr — run `caf connect` (the connect tool in Claude): it opens a Chrome "
+              "window on the CAF login page; sign in there, then retry.")
 
 
 def env_value(name: str) -> str:
@@ -658,7 +659,7 @@ def raw_out(data) -> None:
 # ---------------------------------------------------------------------------
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]},
-             epilog="\b\nExamples:\n  caf login\n  caf paiements --limit 5\n  caf courriers --kind courrier\n"
+             epilog="\b\nExamples:\n  caf connect\n  caf paiements --limit 5\n  caf courriers --kind courrier\n"
                     "  caf download 751T0000000000000000000PDF\n  caf attestation qf")
 @click.option("--cdp-url", default=DEFAULT_CDP, show_default=True, help="DevTools URL of the dedicated Chrome.")
 @click.option("--launch/--no-launch", "auto_launch", default=True, show_default=True,
@@ -692,6 +693,36 @@ def login(ctx: click.Context, timeout: int) -> None:
                 pass
         time.sleep(2)
     raise click.ClickException(f"not signed in after {timeout} s; re-run `caf login`.")
+
+
+@cli.command(epilog="\b\nExamples:\n  caf connect\n  caf connect --json")
+@JSON_OPT
+@click.pass_context
+def connect(ctx: click.Context, as_json: bool) -> None:
+    """Open the dedicated Chrome on caf.fr and report whether it is signed in (returns at once).
+
+    When it is not, the window shows the CAF login page: sign in there
+    (numéro allocataire + mot de passe, or FranceConnect), then run any command.
+    """
+    tab = open_tab(ctx.obj["cdp_url"], ctx.obj["auto_launch"])
+    claims = None
+    if tab.href().startswith(ORIGIN):
+        try:
+            claims = Caf(tab).claims()
+        except click.ClickException:
+            claims = None
+    if not claims:
+        tab.navigate(HOME_URL)
+        tab.call("Page.bringToFront")
+    data = {
+        "connected": bool(claims),
+        "caf": (claims or {}).get("codeOrga"),
+        "dossier": (claims or {}).get("matricule"),
+        "next": None if claims else "Sign in in the Chrome window that just opened on the CAF login page "
+                                     "(numéro allocataire + mot de passe, or FranceConnect), then ask again.",
+    }
+    emit(data, as_json, lambda d: click.echo(
+        f"connected\tCAF {d['caf']}\tdossier {d['dossier']}" if d["connected"] else f"not signed in\t{d['next']}"))
 
 
 @cli.command(epilog="\b\nExamples:\n  caf whoami\n  caf whoami --json")
