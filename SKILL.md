@@ -28,6 +28,9 @@ wwwd.caf.fr tab, with a 5-minute JWT the portal mints at
   `"connected": false`. Ask the user to sign in there (numéro allocataire +
   mot de passe, or FranceConnect), then retry. The person types the password;
   an agent never does. In a terminal, `caf login` does the same and waits.
+- caf.fr's session cookies die with the window: closing the dedicated Chrome
+  signs out (measured 2026-11). Ask the user to keep it open; after a close,
+  `caf connect` and a new sign-in are needed.
 - `caf whoami` proves the binding (name, CAF code, dossier number).
 - Overrides: `CAF_CDP_URL`, `CAF_CHROME_PROFILE`, `CAF_DOWNLOAD_DIR`.
 
